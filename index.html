@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Générateur de personnage – CATS! La Mascarade</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div>
+        <h1>Générateur de personnage – CATS! La Mascarade</h1>
+        <p class="subtitle">Créez, vérifiez et exportez votre fiche de personnage (JSON importable dans Foundry VTT).</p>
+      </div>
+      <div class="topbar-actions">
+        <button id="btn-resume" class="btn btn-ghost" type="button">Reprendre mon brouillon</button>
+        <button id="btn-reset" class="btn btn-danger" type="button">Recommencer</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs"></nav>
+
+  <div class="wrap">
+    <section class="status-bar" id="status-bar"></section>
+    <main id="step-content" class="step-content"></main>
+  </div>
+
+  <footer class="app-footer">
+    <p>
+      Projet fan-made non officiel, basé sur le jeu <strong>CATS! La Mascarade</strong>
+      (Black Book Éditions, auteur Vincent Mathieu). Aucun texte du livre n'est reproduit ici :
+      seules les mécaniques (noms, formules, coûts) sont modélisées. Voir le
+      <a href="README.md">README</a> pour le détail des données à compléter.
+    </p>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
