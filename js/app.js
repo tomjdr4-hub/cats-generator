@@ -401,11 +401,12 @@ function skillCard(def, skillBudgetLeft) {
   const rank = state.skills[def.key] || 0;
   const cost = skillCost(rank);
   const final = 1 + rank;
-  const incDisabled = skillBudgetLeft <= 0;
+  const incDisabled = skillBudgetLeft < skillCostDelta(rank);
   return `
     <div class="skill-card">
       <div class="skill-head">
         <strong>${def.name}</strong> ${def.omega ? '<span class="omega" title="Inutilisable au rang 0">Ω</span>' : ""}
+        <span class="cap">${skillRankName(rank)}</span>
       </div>
       <div class="skill-meta">Base 1 · Rang ${rank} · Coût total ${cost} · Score final ${final}</div>
       <div class="skill-meta small">Formule : ${skillFormula(def)}</div>
@@ -421,13 +422,14 @@ function skillCard(def, skillBudgetLeft) {
 
 function customSkillCard(custom, index, skillBudgetLeft) {
   const rank = custom.rank || 0;
-  const incDisabled = skillBudgetLeft <= 0;
+  const incDisabled = skillBudgetLeft < skillCostDelta(rank);
   const attrs = custom.secondAttr ? [custom.attr, custom.secondAttr] : [custom.attr];
   const formula = attrs.length === 1 ? attributeLabel(attrs[0]) : `(${attrs.map(attributeLabel).join(" + ")})/2`;
   return `
     <div class="skill-card">
       <div class="skill-head">
         <strong>${custom.name}</strong> ${custom.omega ? '<span class="omega" title="Inutilisable au rang 0">Ω</span>' : ""}
+        <span class="cap">${skillRankName(rank)}</span>
       </div>
       <div class="skill-meta">Base 1 · Rang ${rank} · Coût total ${skillCost(rank)} · Score final ${1 + rank}</div>
       <div class="skill-meta small">Formule : ${formula}${custom.specialty ? ` · Spécialité : ${custom.specialty}` : ""}</div>
@@ -657,12 +659,16 @@ document.addEventListener("click", (e) => {
   } else if (action === "attr-dec") {
     if (state.attributes[key] > 1) state.attributes[key]--;
   } else if (action === "skill-inc") {
-    if (skillsSpentTotal() < skillBudgetTotal()) state.skills[key] = (state.skills[key] || 0) + 1;
+    const rank = state.skills[key] || 0;
+    const budgetLeft = skillBudgetTotal() - skillsSpentTotal();
+    if (budgetLeft >= skillCostDelta(rank)) state.skills[key] = rank + 1;
   } else if (action === "skill-dec") {
     state.skills[key] = Math.max(0, (state.skills[key] || 0) - 1);
   } else if (action === "customskill-inc") {
     const c = state.customSkills[Number(t.getAttribute("data-index"))];
-    if (c && skillsSpentTotal() < skillBudgetTotal()) c.rank = (c.rank || 0) + 1;
+    const rank = c ? c.rank || 0 : 0;
+    const budgetLeft = skillBudgetTotal() - skillsSpentTotal();
+    if (c && budgetLeft >= skillCostDelta(rank)) c.rank = rank + 1;
   } else if (action === "customskill-dec") {
     const c = state.customSkills[Number(t.getAttribute("data-index"))];
     if (c) c.rank = Math.max(0, (c.rank || 0) - 1);

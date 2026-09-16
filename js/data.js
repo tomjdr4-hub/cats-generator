@@ -85,11 +85,27 @@ const SKILLS = [
   { key: "utiliser_objet_humain", name: "Utiliser un objet humain", usableBy: "C", attrs: ["eye"], omega: false },
 ];
 
-// Coût en points pour atteindre un rang de compétence donné (barème "standard" = 1 pt/rang).
-// TODO : confirmer s'il existe d'autres barèmes ("réduit"/"majoré") mentionnés dans le formulaire
-// de compétence personnalisée du générateur de référence.
+// Barème officiel (livre de base) : coût cumulé en points pour atteindre un rang
+// de compétence donné. Rang max = 5 (Maître).
+const SKILL_RANK_NAMES = ["Néophyte", "Amateur", "Connaisseur", "Professionnel", "Expert", "Maître"];
+const SKILL_RANK_COSTS = [0, 1, 2, 4, 8, 16];
+const SKILL_MAX_RANK = SKILL_RANK_COSTS.length - 1;
+
 function skillCost(rank) {
-  return rank;
+  const r = Math.max(0, Math.min(rank, SKILL_MAX_RANK));
+  return SKILL_RANK_COSTS[r];
+}
+
+function skillRankName(rank) {
+  const r = Math.max(0, Math.min(rank, SKILL_MAX_RANK));
+  return SKILL_RANK_NAMES[r];
+}
+
+// Coût supplémentaire pour passer du rang "rank" à "rank + 1" (utilisé pour savoir
+// si le budget restant permet d'augmenter une compétence d'un cran).
+function skillCostDelta(rank) {
+  if (rank >= SKILL_MAX_RANK) return Infinity;
+  return skillCost(rank + 1) - skillCost(rank);
 }
 
 // Qualités (avantages) : coût négatif = points pris sur le pool de compétences.

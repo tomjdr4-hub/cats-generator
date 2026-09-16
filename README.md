@@ -41,6 +41,9 @@ Le [système Foundry fan-made cats-la-mascarade](https://gitlab.com/Vlyan/cats-l
 - Le format d'export JSON (structure Acteur/Items Foundry).
 - 5 talents avec plafonds par espèce connus (Télékinésie, Téléportation, Arrêt
   Temporel, Hypnose, Sommeil).
+- Le barème officiel de coût des rangs de compétence (table du livre de base,
+  `SKILL_RANK_COSTS` dans `js/data.js`) : Néophyte 0 · Amateur 1 · Connaisseur 2 ·
+  Professionnel 4 · Expert 8 · Maître 16 points. Rang 5 (Maître) = plafond.
 
 Éléments **transcrits depuis les captures d'écran du générateur de référence** (donc
 fidèles à cet outil, mais pas nécessairement au livre canonique si celui-ci diffère) :
