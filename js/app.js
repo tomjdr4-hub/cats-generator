@@ -476,11 +476,11 @@ function talentCard(def, talentBudgetLeft) {
   const rank = state.talents[def.key] || 0;
   const max = def.maxRank[state.identity.type] || 5;
   const cost = talentCost(rank);
-  const incDisabled = rank >= max || talentBudgetLeft <= 0;
+  const incDisabled = rank >= max || talentBudgetLeft < talentCostDelta(rank);
   return `
     <div class="skill-card">
       <div class="skill-head">
-        <strong>${def.name}</strong> <span class="cap">Max. ${max}</span>
+        <strong>${def.name}</strong> <span class="cap">${talentRankName(rank)} · Max. ${max}</span>
       </div>
       <p class="hint small">${def.note} Détails complets dans le livre.</p>
       <div class="stepper">
@@ -498,7 +498,7 @@ function renderStep6() {
   return `
     <section class="card">
       <h2>Talents psychiques</h2>
-      <p class="hint">Le capital dépend de la Vibrisse finale. Liste non exhaustive — voir README.</p>
+      <p class="hint">Capital selon la Vibrisse finale (1→2, 2→4, 3→8, 4→16, 5→24 points). Liste de talents non exhaustive — voir README.</p>
       <div class="skill-grid">${TALENTS.map((t) => talentCard(t, talentBudgetLeft)).join("")}</div>
     </section>
   `;
@@ -677,8 +677,10 @@ document.addEventListener("click", (e) => {
   } else if (action === "talent-inc") {
     const def = TALENTS.find((tl) => tl.key === key);
     const max = def.maxRank[state.identity.type] || 5;
-    if ((state.talents[key] || 0) < max && talentsSpentTotal() < talentBudgetTotal()) {
-      state.talents[key] = (state.talents[key] || 0) + 1;
+    const rank = state.talents[key] || 0;
+    const budgetLeft = talentBudgetTotal() - talentsSpentTotal();
+    if (rank < max && budgetLeft >= talentCostDelta(rank)) {
+      state.talents[key] = rank + 1;
     }
   } else if (action === "talent-dec") {
     state.talents[key] = Math.max(0, (state.talents[key] || 0) - 1);

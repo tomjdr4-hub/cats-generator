@@ -42,11 +42,17 @@ function skillBaseBudget(purringFinal, caressFinal) {
   return (purringFinal + caressFinal) * 3;
 }
 
-// Le budget de Talents dépend de la Vibrisse finale (indiqué dans la capture,
-// formule exacte non fournie). Ici : 2 x Vibrisse finale (donne bien 2 quand Vibrisse = 1).
-// TODO : vérifier la formule exacte dans le livre de base.
+// Budget de points de Talents en fonction du score de Vibrisse (Intuition) final,
+// table officielle du livre de base.
+const TALENT_BUDGET_BY_WHISKERS = { 1: 2, 2: 4, 3: 8, 4: 16, 5: 24 };
+
 function talentBudgetFromWhiskers(whiskersFinal) {
-  return whiskersFinal * 2;
+  if (whiskersFinal in TALENT_BUDGET_BY_WHISKERS) return TALENT_BUDGET_BY_WHISKERS[whiskersFinal];
+  // Vibrisse finale hors de la plage 1-5 couverte par la table (ex. bonus permanent) :
+  // on retombe sur la borne la plus proche plutôt que d'extrapoler une valeur inventée.
+  const knownScores = Object.keys(TALENT_BUDGET_BY_WHISKERS).map(Number);
+  const clamped = Math.max(Math.min(whiskersFinal, Math.max(...knownScores)), Math.min(...knownScores));
+  return TALENT_BUDGET_BY_WHISKERS[clamped];
 }
 
 // Liste des compétences, reprise telle quelle depuis l'export Foundry fourni.
@@ -171,8 +177,25 @@ const TALENTS = [
   { key: "teleportation", name: "Teleportation", note: "Téléporte (rang) personnages ou un objet de 5×rang kg dans un rayon de 20×rang km.", maxRank: { cat: 5, bastet: 3, human: 2 } },
 ];
 
+// Barème officiel de coût des rangs de Talent (même progression que les
+// compétences, mais noms de rang distincts). Rang max = 5 (Maître).
+const TALENT_RANK_NAMES = ["Non appris", "Amateur", "Disciple", "Pratiquant", "Professeur", "Maître"];
+const TALENT_RANK_COSTS = [0, 1, 2, 4, 8, 16];
+const TALENT_MAX_RANK = TALENT_RANK_COSTS.length - 1;
+
 function talentCost(rank) {
-  return rank;
+  const r = Math.max(0, Math.min(rank, TALENT_MAX_RANK));
+  return TALENT_RANK_COSTS[r];
+}
+
+function talentRankName(rank) {
+  const r = Math.max(0, Math.min(rank, TALENT_MAX_RANK));
+  return TALENT_RANK_NAMES[r];
+}
+
+function talentCostDelta(rank) {
+  if (rank >= TALENT_MAX_RANK) return Infinity;
+  return talentCost(rank + 1) - talentCost(rank);
 }
 
 // Factions connues. Liste incomplète — seule "Les Interventionnistes" figure dans les

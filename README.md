@@ -46,12 +46,15 @@ Le [système Foundry fan-made cats-la-mascarade](https://gitlab.com/Vlyan/cats-l
   Professionnel 4 · Expert 8 · Maître 16 points. Rang 5 (Maître) = plafond.
 - Le budget de base de points de compétences : (Ronronnement + Caresse) × 3
   (caractéristiques finales), avant application des qualités/défauts.
+- Le budget de points de Talents selon le score de Vibrisse final (table
+  officielle : 1→2, 2→4, 3→8, 4→16, 5→24 points).
+- Le barème de coût des rangs de Talent (0 · 1 · 2 · 4 · 8 · 16 pour Non appris /
+  Amateur / Disciple / Pratiquant / Professeur / Maître).
 
 Éléments **transcrits depuis les captures d'écran du générateur de référence** (donc
 fidèles à cet outil, mais pas nécessairement au livre canonique si celui-ci diffère) :
 - Les listes de Qualités et Défauts avec leur coût en points.
-- Le budget de caractéristiques (28 points) et la formule du budget de Talents
-  (2×Vibrisse finale, à confirmer).
+- Le budget de caractéristiques (28 points).
 - 10 talents supplémentaires (nom + effet résumé), plafonnés à 5 par défaut.
 
 Éléments **à compléter vous-même depuis le livre de base** (marqués `TODO` dans
