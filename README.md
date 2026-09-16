@@ -44,11 +44,14 @@ Le [système Foundry fan-made cats-la-mascarade](https://gitlab.com/Vlyan/cats-l
 - Le barème officiel de coût des rangs de compétence (table du livre de base,
   `SKILL_RANK_COSTS` dans `js/data.js`) : Néophyte 0 · Amateur 1 · Connaisseur 2 ·
   Professionnel 4 · Expert 8 · Maître 16 points. Rang 5 (Maître) = plafond.
+- Le budget de base de points de compétences : (Ronronnement + Caresse) × 3
+  (caractéristiques finales), avant application des qualités/défauts.
 
 Éléments **transcrits depuis les captures d'écran du générateur de référence** (donc
 fidèles à cet outil, mais pas nécessairement au livre canonique si celui-ci diffère) :
 - Les listes de Qualités et Défauts avec leur coût en points.
-- Les budgets de points visibles (28 caractéristiques / 6 compétences / talents = 2×Vibrisse).
+- Le budget de caractéristiques (28 points) et la formule du budget de Talents
+  (2×Vibrisse finale, à confirmer).
 - 10 talents supplémentaires (nom + effet résumé), plafonnés à 5 par défaut.
 
 Éléments **à compléter vous-même depuis le livre de base** (marqués `TODO` dans

@@ -36,9 +36,11 @@ const ATTRIBUTES = [
 // TODO : confirmer si Bastet / Humain ont un budget différent dans le livre.
 const ATTRIBUTE_BUDGET = { cat: 28, bastet: 28, human: 28 };
 
-// Budget de base de points de compétences (avant effets des qualités/défauts).
-// TODO : confirmer si ce budget varie selon le Type.
-const SKILL_BASE_BUDGET = 6;
+// Budget de base de points de compétences (avant effets des qualités/défauts) :
+// (Ronronnement + Caresse) x 3, caractéristiques finales (avec bonus permanents).
+function skillBaseBudget(purringFinal, caressFinal) {
+  return (purringFinal + caressFinal) * 3;
+}
 
 // Le budget de Talents dépend de la Vibrisse finale (indiqué dans la capture,
 // formule exacte non fournie). Ici : 2 x Vibrisse finale (donne bien 2 quand Vibrisse = 1).

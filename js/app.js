@@ -111,7 +111,7 @@ function attrSpentTotal() {
 }
 
 function skillBudgetTotal() {
-  let total = SKILL_BASE_BUDGET;
+  let total = skillBaseBudget(finalAttribute(state, "purring"), finalAttribute(state, "caress"));
   state.chosenQualities.forEach((q) => (total += q.cost));
   state.chosenDefects.forEach((d) => (total += d.cost));
   return total;
@@ -449,7 +449,7 @@ function renderStep5() {
   return `
     <section class="card">
       <h2>Compétences</h2>
-      <p class="hint">Ω : une compétence au rang 0 est inutilisable.</p>
+      <p class="hint">Ω : une compétence au rang 0 est inutilisable. Capital de base : (Ronronnement + Caresse) × 3.</p>
       <div class="skill-grid">
         ${skills.map((s) => skillCard(s, skillBudgetLeft)).join("")}
         ${state.customSkills.map((c, i) => customSkillCard(c, i, skillBudgetLeft)).join("")}
