@@ -256,7 +256,7 @@ function buildFoundryActor(state) {
       specie: state.identity.type,
       identity: {
         age: state.identity.age || 0,
-        breed: state.breed || "",
+        breed: effectiveBreed(state) || "",
         lineage: state.identity.lineage || "",
         reputation: state.identity.reputation || 0,
         faction: state.identity.faction && state.identity.faction !== "Sans faction" ? state.identity.faction : "",

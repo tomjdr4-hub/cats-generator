@@ -161,11 +161,33 @@ function talentCost(rank) {
 // sources fournies. À compléter depuis le livre de base.
 const FACTIONS = ["Sans faction", "Les Interventionnistes"];
 
-// Races/lignées "officielles". Aucune n'était listée dans les captures (le menu
-// déroulant était vide, "Choisir une race"). Liste de démonstration ci-dessous,
-// À REMPLACER par la liste réelle du livre de base (une race par ligne suffit).
+// Valeur spéciale pour l'option "Autre race" du menu déroulant (voir capture d'écran).
+const OTHER_BREED_VALUE = "__other__";
+const OTHER_BREED_LABEL = "Autre race - validation de la MJ recommandée";
+
+// Races/lignées "officielles". Liste des races de Chat reprise telle quelle du
+// générateur de référence (menu déroulant). Bastet/Humain restent à compléter
+// depuis le livre de base (le champ bascule en saisie libre tant que la liste
+// est vide).
 const BREEDS = {
-  cat: [],
+  cat: [
+    "Abyssin",
+    "Angora",
+    "Bengal",
+    "Birman",
+    "British Shorthair",
+    "Chartreux",
+    "Exotic Shorthair",
+    "Européen",
+    "Maine Coon",
+    "Norvégien",
+    "Oriental",
+    "Persan",
+    "Ragdoll",
+    "Scottish Fold",
+    "Siamois",
+    "Somali",
+  ],
   bastet: [],
   human: [],
 };

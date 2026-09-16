@@ -41,6 +41,7 @@ function defaultState() {
       notes: "",
     },
     breed: "",
+    breedOther: "",
     attributes: attrs,
     chosenQualities: [],
     chosenDefects: [],
@@ -73,6 +74,10 @@ function loadDraft() {
 }
 
 // ---------- Calculs de règles ----------
+
+function effectiveBreed(st) {
+  return st.breed === OTHER_BREED_VALUE ? st.breedOther : st.breed;
+}
 
 function attributeLabel(key) {
   return ATTRIBUTES.find((a) => a.key === key).label;
@@ -135,7 +140,7 @@ function validate() {
   const infos = [];
 
   if (!state.identity.name.trim()) errors.push("Le nom principal est obligatoire.");
-  if (!state.breed.trim()) {
+  if (!effectiveBreed(state).trim()) {
     const label = SPECIES.find((s) => s.key === state.identity.type).label;
     errors.push(`La race du ${label} est obligatoire.`);
   }
@@ -278,6 +283,7 @@ function renderStep2() {
       ? `<select data-bind="breed">
           <option value="">Choisir une race</option>
           ${list.map((b) => `<option value="${b}" ${state.breed === b ? "selected" : ""}>${b}</option>`).join("")}
+          <option value="${OTHER_BREED_VALUE}" ${state.breed === OTHER_BREED_VALUE ? "selected" : ""}>${OTHER_BREED_LABEL}</option>
         </select>`
       : `<input type="text" placeholder="Race (liste non renseignée — voir README)" data-bind="breed" value="${escapeAttr(state.breed)}" />`;
   return `
@@ -287,6 +293,14 @@ function renderStep2() {
         <span>Race officielle *</span>
         ${control}
       </label>
+      ${
+        list.length > 0 && state.breed === OTHER_BREED_VALUE
+          ? `<label class="field">
+              <span>Précisez la race</span>
+              <input type="text" data-bind="breedOther" value="${escapeAttr(state.breedOther)}" />
+            </label>`
+          : ""
+      }
       <p class="hint">Éléments obligatoires : Aucun</p>
       ${list.length === 0 ? `<p class="warn">La liste officielle des races n'est pas fournie dans ce dépôt : saisissez-la librement, ou complétez <code>js/data.js</code> (BREEDS) depuis le livre de base.</p>` : ""}
     </section>
@@ -294,9 +308,11 @@ function renderStep2() {
 }
 
 function renderStep3() {
+  const budgetLeft = attrBudgetTotal() - attrSpentTotal();
   const cards = ATTRIBUTES.map((a) => {
     const value = state.attributes[a.key];
     const final = finalAttribute(state, a.key);
+    const incDisabled = value >= a.cap || budgetLeft <= 0;
     return `
       <div class="attr-card">
         <div class="attr-head">
@@ -306,7 +322,7 @@ function renderStep3() {
         <div class="stepper">
           <button type="button" data-action="attr-dec" data-key="${a.key}" ${value <= 1 ? "disabled" : ""}>-</button>
           <span class="value">${value}</span>
-          <button type="button" data-action="attr-inc" data-key="${a.key}" ${value >= a.cap ? "disabled" : ""}>+</button>
+          <button type="button" data-action="attr-inc" data-key="${a.key}" ${incDisabled ? "disabled" : ""}>+</button>
         </div>
         <div class="attr-final">Finale : ${final}</div>
         ${a.noModifiers ? `<p class="hint small">Chance ne reçoit aucun bonus ni malus.</p>` : ""}
@@ -341,6 +357,8 @@ function traitCard(def, kind) {
 }
 
 function renderStep4() {
+  const customQualities = state.chosenQualities.filter((c) => c.custom);
+  const customDefects = state.chosenDefects.filter((c) => c.custom);
   return `
     <section class="card">
       <h2>Qualités et défauts</h2>
@@ -355,6 +373,15 @@ function renderStep4() {
           ${DEFECTS.map((d) => traitCard(d, "defect")).join("")}
         </div>
       </div>
+      ${
+        customQualities.length || customDefects.length
+          ? `<h3>Éléments personnalisés ajoutés</h3>
+             <div class="grid-2">
+               <div>${customQualities.map((q) => traitCard(q, "quality")).join("")}</div>
+               <div>${customDefects.map((d) => traitCard(d, "defect")).join("")}</div>
+             </div>`
+          : ""
+      }
       <h3>Qualité ou défaut personnalisé</h3>
       <form id="custom-trait-form" class="custom-form">
         <select name="kind">
@@ -370,10 +397,11 @@ function renderStep4() {
   `;
 }
 
-function skillCard(def) {
+function skillCard(def, skillBudgetLeft) {
   const rank = state.skills[def.key] || 0;
   const cost = skillCost(rank);
   const final = 1 + rank;
+  const incDisabled = skillBudgetLeft <= 0;
   return `
     <div class="skill-card">
       <div class="skill-head">
@@ -384,20 +412,46 @@ function skillCard(def) {
       <div class="stepper">
         <button type="button" data-action="skill-dec" data-key="${def.key}" ${rank <= 0 ? "disabled" : ""}>-</button>
         <span class="value">${rank}</span>
-        <button type="button" data-action="skill-inc" data-key="${def.key}">+</button>
+        <button type="button" data-action="skill-inc" data-key="${def.key}" ${incDisabled ? "disabled" : ""}>+</button>
       </div>
       ${def.omega && rank === 0 ? `<p class="warn small">Non acquise - rang 1 minimum</p>` : ""}
     </div>
   `;
 }
 
+function customSkillCard(custom, index, skillBudgetLeft) {
+  const rank = custom.rank || 0;
+  const incDisabled = skillBudgetLeft <= 0;
+  const attrs = custom.secondAttr ? [custom.attr, custom.secondAttr] : [custom.attr];
+  const formula = attrs.length === 1 ? attributeLabel(attrs[0]) : `(${attrs.map(attributeLabel).join(" + ")})/2`;
+  return `
+    <div class="skill-card">
+      <div class="skill-head">
+        <strong>${custom.name}</strong> ${custom.omega ? '<span class="omega" title="Inutilisable au rang 0">Ω</span>' : ""}
+      </div>
+      <div class="skill-meta">Base 1 · Rang ${rank} · Coût total ${skillCost(rank)} · Score final ${1 + rank}</div>
+      <div class="skill-meta small">Formule : ${formula}${custom.specialty ? ` · Spécialité : ${custom.specialty}` : ""}</div>
+      <div class="stepper">
+        <button type="button" data-action="customskill-dec" data-index="${index}" ${rank <= 0 ? "disabled" : ""}>-</button>
+        <span class="value">${rank}</span>
+        <button type="button" data-action="customskill-inc" data-index="${index}" ${incDisabled ? "disabled" : ""}>+</button>
+        <button type="button" class="btn btn-small" data-action="customskill-remove" data-index="${index}">Retirer</button>
+      </div>
+    </div>
+  `;
+}
+
 function renderStep5() {
   const skills = usableSkills();
+  const skillBudgetLeft = skillBudgetTotal() - skillsSpentTotal();
   return `
     <section class="card">
       <h2>Compétences</h2>
       <p class="hint">Ω : une compétence au rang 0 est inutilisable.</p>
-      <div class="skill-grid">${skills.map(skillCard).join("")}</div>
+      <div class="skill-grid">
+        ${skills.map((s) => skillCard(s, skillBudgetLeft)).join("")}
+        ${state.customSkills.map((c, i) => customSkillCard(c, i, skillBudgetLeft)).join("")}
+      </div>
       <h3>Compétence personnalisée</h3>
       <form id="custom-skill-form" class="custom-form">
         <input name="name" type="text" placeholder="Nom" required />
@@ -416,10 +470,11 @@ function renderStep5() {
   `;
 }
 
-function talentCard(def) {
+function talentCard(def, talentBudgetLeft) {
   const rank = state.talents[def.key] || 0;
   const max = def.maxRank[state.identity.type] || 5;
   const cost = talentCost(rank);
+  const incDisabled = rank >= max || talentBudgetLeft <= 0;
   return `
     <div class="skill-card">
       <div class="skill-head">
@@ -429,7 +484,7 @@ function talentCard(def) {
       <div class="stepper">
         <button type="button" data-action="talent-dec" data-key="${def.key}" ${rank <= 0 ? "disabled" : ""}>-</button>
         <span class="value">${rank}</span>
-        <button type="button" data-action="talent-inc" data-key="${def.key}" ${rank >= max ? "disabled" : ""}>+</button>
+        <button type="button" data-action="talent-inc" data-key="${def.key}" ${incDisabled ? "disabled" : ""}>+</button>
       </div>
       <div class="skill-meta small">Coût : ${cost}</div>
     </div>
@@ -437,11 +492,12 @@ function talentCard(def) {
 }
 
 function renderStep6() {
+  const talentBudgetLeft = talentBudgetTotal() - talentsSpentTotal();
   return `
     <section class="card">
       <h2>Talents psychiques</h2>
       <p class="hint">Le capital dépend de la Vibrisse finale. Liste non exhaustive — voir README.</p>
-      <div class="skill-grid">${TALENTS.map(talentCard).join("")}</div>
+      <div class="skill-grid">${TALENTS.map((t) => talentCard(t, talentBudgetLeft)).join("")}</div>
     </section>
   `;
 }
@@ -476,7 +532,7 @@ function renderStep8() {
   return `
     <section class="card" id="print-sheet">
       <h2>${i.name} — ${SPECIES.find((s) => s.key === i.type).label}</h2>
-      <p>Race : ${state.breed} · Âge : ${i.age || "?"} · Réputation : ${i.reputation} · Faction : ${i.faction}</p>
+      <p>Race : ${effectiveBreed(state)} · Âge : ${i.age || "?"} · Réputation : ${i.reputation} · Faction : ${i.faction}</p>
       <h3>Caractéristiques</h3>
       <ul class="print-attrs">
         ${ATTRIBUTES.map((a) => `<li>${a.label} : ${finalAttribute(state, a.key)}</li>`).join("")}
@@ -541,7 +597,7 @@ function bindDynamicInputs() {
       // Re-render status bar + tab without losing focus on the whole form.
       renderStatusBar();
       renderTabs();
-      if (path === "identity.type") render();
+      if (path === "identity.type" || path === "breed") render();
     });
   });
 
@@ -597,17 +653,27 @@ document.addEventListener("click", (e) => {
 
   if (action === "attr-inc") {
     const def = ATTRIBUTES.find((a) => a.key === key);
-    if (state.attributes[key] < def.cap) state.attributes[key]++;
+    if (state.attributes[key] < def.cap && attrSpentTotal() < attrBudgetTotal()) state.attributes[key]++;
   } else if (action === "attr-dec") {
     if (state.attributes[key] > 1) state.attributes[key]--;
   } else if (action === "skill-inc") {
-    state.skills[key] = (state.skills[key] || 0) + 1;
+    if (skillsSpentTotal() < skillBudgetTotal()) state.skills[key] = (state.skills[key] || 0) + 1;
   } else if (action === "skill-dec") {
     state.skills[key] = Math.max(0, (state.skills[key] || 0) - 1);
+  } else if (action === "customskill-inc") {
+    const c = state.customSkills[Number(t.getAttribute("data-index"))];
+    if (c && skillsSpentTotal() < skillBudgetTotal()) c.rank = (c.rank || 0) + 1;
+  } else if (action === "customskill-dec") {
+    const c = state.customSkills[Number(t.getAttribute("data-index"))];
+    if (c) c.rank = Math.max(0, (c.rank || 0) - 1);
+  } else if (action === "customskill-remove") {
+    state.customSkills.splice(Number(t.getAttribute("data-index")), 1);
   } else if (action === "talent-inc") {
     const def = TALENTS.find((tl) => tl.key === key);
     const max = def.maxRank[state.identity.type] || 5;
-    if ((state.talents[key] || 0) < max) state.talents[key] = (state.talents[key] || 0) + 1;
+    if ((state.talents[key] || 0) < max && talentsSpentTotal() < talentBudgetTotal()) {
+      state.talents[key] = (state.talents[key] || 0) + 1;
+    }
   } else if (action === "talent-dec") {
     state.talents[key] = Math.max(0, (state.talents[key] || 0) - 1);
   } else if (action === "add-trait") {
